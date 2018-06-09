@@ -29,6 +29,7 @@ namespace Arko
 			"}\n"
 		;
 		void loadShadersAndPrograms();
+		void setOpenGL();
 		void mainLoop();
 		void draw();
 

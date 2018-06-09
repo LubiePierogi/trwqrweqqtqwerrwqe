@@ -103,6 +103,7 @@ namespace Arko
       ;
       return -1;
 	  }
+    setOpenGL();
     mainLoop();
     return 0;
   }
@@ -186,9 +187,9 @@ namespace Arko
     bool notQuit=true;
     while(notQuit)
     {
+      draw();
       while(SDL_PollEvent(&ev))
       {
-        draw();
         switch(ev.type)
         {
           case SDL_QUIT:
@@ -199,6 +200,13 @@ namespace Arko
       }
     }
   }
+  void Filter::setOpenGL()
+  {
+    glClearColor(0.0,0.0,0.0,1.0);
+  }
   void Filter::draw()
-  {}
+  {
+    glClear(GL_COLOR_BUFFER_BIT);
+    SDL_GL_SwapWindow(window);
+  }
 }
