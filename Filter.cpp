@@ -25,7 +25,7 @@ namespace Arko
     attrVertex(0),
     attrTexCoord(0),
     texture(0),
-    drawTexturePointer(nullptr),
+    viewType(STRETCHED),
     image(),
     imageNew()
   {}
@@ -218,6 +218,7 @@ namespace Arko
             switch(ev.window.event)
             {
               case SDL_WINDOWEVENT_RESIZED:
+
                 resizeViewport(ev.window.data1,ev.window.data2);
                 break;
               default:;
@@ -231,6 +232,9 @@ namespace Arko
                 break;
               case SDLK_RETURN:
                 saveImageToFile("output.png");
+                break;
+              case SDLK_x:
+                changeViewType();
                 break;
               default:;
             }
@@ -323,7 +327,6 @@ namespace Arko
   void Filter::editImage()
   {
     imageNew=PNG(PNG::empty,image.getWidth(),image.getHeight());
-    std::cerr<<"!!!!!!!!!!!!!!!!!!!!\n";
     ::function
     (
       image.getPixels(),
@@ -331,11 +334,41 @@ namespace Arko
       image.getWidth(),
       image.getHeight()
     );
-    std::cerr<<"@@@@@@@@@@@@@@@@@@@@\n";
     image=imageNew;
   }
   void Filter::resizeViewport(int width,int height)
   {
-    glViewport(0,0,width,height);
+    switch(viewType)
+    {
+      case STRETCHED:
+        glViewport(0,0,width,height);
+        break;
+      case PROPORTIONAL:
+        {
+          double x=1.0*width/image.getWidth()/height*image.getHeight();
+          if(x<1.0)
+          {
+            glViewport
+              (0,0,width,1.0*width*image.getHeight()/image.getWidth());
+          }
+          else
+          {
+            glViewport
+              (0,0,1.0*height*image.getWidth()/image.getHeight(),height);
+          }
+        }
+        break;
+      case ONE_TO_ONE:
+        glViewport(0,0,image.getWidth(),image.getHeight());
+      default:;
+    }
+  }
+  void Filter::changeViewType()
+  {
+    viewType=static_cast<ViewType>((viewType+1)%(0+ViewType::END));
+    int w;
+    int h;
+    SDL_GetWindowSize(window,&w,&h);
+    resizeViewport(w,h);
   }
 }

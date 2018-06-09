@@ -56,10 +56,10 @@ namespace Arko
 
     constexpr static TexCoord texCoords[4]
     {
-      {0.f,0.f},
-      {1.f,0.f},
+      {0.f,1.f},
       {1.f,1.f},
-      {0.f,1.f}
+      {1.f,0.f},
+      {0.f,0.f}
     };
 
 
@@ -69,6 +69,7 @@ namespace Arko
     void unsetOpenGL();
     void mainLoop();
     void draw();
+    void changeViewType();
     void resizeViewport(int,int);
 
     void loadImageFromFile(std::string name);
@@ -97,9 +98,16 @@ namespace Arko
 
     GLuint texture;
 
-    void*drawTexturePointer;
 
   private:
+
+    enum ViewType
+    {
+      STRETCHED,
+      PROPORTIONAL,
+      ONE_TO_ONE,
+      END,
+    }viewType;
 
     PNG image;
     PNG imageNew;

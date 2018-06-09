@@ -7,13 +7,14 @@
 
 namespace Arko
 {
+  constexpr PNG::FromFile PNG::fromFile;
+  constexpr PNG::Empty PNG::empty;
   PNG::PNG():
     width(0),
     height(0),
     pixels(nullptr)
   {}
-  PNG::PNG(PNG::FromFile,std::string name):
-    PNG()
+  PNG::PNG(const FromFile&,std::string name)
   {
     // Tutaj będzie zięcie obrazka przez libpng.
 
@@ -67,7 +68,6 @@ namespace Arko
     png_set_sig_bytes(png_ptr,8);
     png_read_info(png_ptr,info_ptr);
 
-    std::cerr<<"zxczxc\n";
 
     png_get_IHDR
     (
@@ -81,27 +81,48 @@ namespace Arko
       nullptr,
       nullptr
     );
-
-//    png_set_scale_16(png_ptr);
-  //  png_set_strip_16(png_ptr);
-//    png_set_packswap(png_ptr);
+;
     // Read file?!
 
-    std::cerr<<"zxczxccxzxc\n";
+    /*if(bit_depth==16)
+      png_set_strip_16(png_ptr);
+    if(color_type==PNG_COLOR_TYPE_PALETTE)
+      png_set_palette_to_rgb(png_ptr);
+    if(color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+      png_set_expand_gray_1_2_4_to_8(png_ptr);
+    if(png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+      png_set_tRNS_to_alpha(png_ptr);
+    if
+    (
+      color_type == PNG_COLOR_TYPE_RGB ||
+      color_type == PNG_COLOR_TYPE_GRAY ||
+      color_type == PNG_COLOR_TYPE_PALETTE
+    )
+      png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
+    if
+    (
+      color_type == PNG_COLOR_TYPE_GRAY ||
+      color_type == PNG_COLOR_TYPE_GRAY_ALPHA
+    )
+      png_set_gray_to_rgb(png_ptr);
+
+    png_read_update_info(png_ptr,info_ptr);
+
+*/
 
     row_pointers=static_cast<png_bytep*>(std::malloc(sizeof(png_bytep)*h));
     for(unsigned int y=0;y<h;++y)
       row_pointers[y]=
         static_cast<png_byte*>(std::malloc(png_get_rowbytes(png_ptr,info_ptr)));
 
-    std::cerr<<"ghghghghg\n";
     png_read_image(png_ptr,row_pointers);
 
-    std::cerr<<"okdoskad\"\n";
 
     png_read_end(png_ptr,info_ptr);
 
-    std::cerr<<"cvvcvcvc\n";
+
+    png_destroy_read_struct(&png_ptr,&info_ptr,nullptr);
+    std::fclose(fp);
 
     if
     (
@@ -109,7 +130,6 @@ namespace Arko
       bit_depth==8
     )
     {
-      std::cerr<<"qwer\n";
       good=true;
       width=w;
       height=h;
@@ -123,7 +143,6 @@ namespace Arko
         }
       }
     }
-    std::cerr<<"qewqweqewqwqewq\n";
 
 
     for(unsigned int y=0;y<h;++y)
@@ -131,11 +150,12 @@ namespace Arko
     std::free(row_pointers);
 
     if(!good)
+    {
       throw Exception
       (
         std::string()+
         "Zły format obrazu:\n"+
-        std::to_string(png_get_color_type(png_ptr,info_ptr))+
+        std::to_string(color_type)+
         '\n'+
         std::to_string(bit_depth)+
         '\n'+
@@ -143,9 +163,9 @@ namespace Arko
         '\n'+
         std::to_string(h)
       );
-
+    }
   }
-  PNG::PNG(Empty,unsigned w,unsigned h):
+  PNG::PNG(const Empty&,unsigned w,unsigned h):
     width(w),
     height(h)
   {
@@ -163,9 +183,9 @@ namespace Arko
     width=other.width;
     height=other.height;
     pixels=new Pixel[width*height];
-    for(unsigned int i=0;i<height;++i)
-      for(unsigned int j=0;j<width;++j)
-        pixels[j*width+i]=other.pixels[j*width+i];
+    for(unsigned int y=0;y<height;++y)
+      for(unsigned int x=0;x<width;++x)
+        pixels[y*width+x]=other.pixels[y*width+x];
   }
   PNG&PNG::operator=(const PNG&other)
   {
@@ -176,9 +196,9 @@ namespace Arko
     width=other.width;
     height=other.height;
     pixels=new Pixel[width*height];
-    for(unsigned int i=0;i<height;++i)
-      for(unsigned int j=0;j<width;++j)
-        pixels[j*width+i]=other.pixels[j*width+i];
+    for(unsigned int y=0;y<height;++y)
+      for(unsigned int x=0;x<width;++x)
+        pixels[y*width+x]=other.pixels[y*width+x];
     return *this;
   }
   unsigned int PNG::getWidth()const
@@ -195,6 +215,60 @@ namespace Arko
   }
   void PNG::save(std::string name)
   {
-    // To później.
+    png_structp png_ptr;
+    png_infop info_ptr;
+    png_bytep*row_pointers;
+    row_pointers=new png_bytep[height];
+    for(unsigned y=0;y<height;++y)
+    {
+      row_pointers[y]=reinterpret_cast<png_bytep>(pixels+width*y);
+    }
+    std::FILE*fp=std::fopen(name.c_str(),"wb");
+    if(!fp)
+      throw Exception("Nie udało się otworzyć pliku '"+name+"' do zapisu.\n");
+    png_ptr=
+      png_create_write_struct(PNG_LIBPNG_VER_STRING,nullptr,nullptr,nullptr);
+    if(!png_ptr)
+    {
+      std::fclose(fp);
+      throw Exception("Nie zrobiono struktury do zapisu.");
+    }
+    info_ptr=png_create_info_struct(png_ptr);
+    if(!info_ptr)
+    {
+      png_destroy_write_struct(&png_ptr,nullptr);
+      std::fclose(fp);
+      throw Exception("Nie poszło png_create_info_struct.");
+    }
+    if(setjmp(png_jmpbuf(png_ptr)))
+    {
+      png_destroy_write_struct(&png_ptr,&info_ptr);
+      std::fclose(fp);
+      throw Exception("Jakiś tam błąd init_io, nie wiem, co to jest.");
+    }
+
+    png_init_io(png_ptr,fp);
+
+    png_set_IHDR
+    (
+      png_ptr,
+      info_ptr,
+      width,
+      height,
+      8,
+      PNG_COLOR_TYPE_RGBA,
+      PNG_INTERLACE_NONE,
+      PNG_COMPRESSION_TYPE_DEFAULT,
+      PNG_FILTER_TYPE_DEFAULT
+    );
+
+    png_write_info(png_ptr,info_ptr);
+    png_write_image(png_ptr,row_pointers);
+    png_write_end(png_ptr,nullptr);
+
+    delete[] row_pointers;
+    png_destroy_write_struct(&png_ptr,&info_ptr);
+    std::fclose(fp);
+
   }
 }

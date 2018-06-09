@@ -1,3 +1,11 @@
+;
+;
+; Asemblerowa funkcja robiąca filtr medianowy
+;
+;
+
+
+
 section .text
 global function
 
@@ -142,7 +150,6 @@ medianLoop:
 ;edx zajęte
 		add ebx,edx; przesuwamy się na kolor, któ©y zmieniamy
 		sub ebx,esi; dodatkowo cofamu się o linię
-;; na końcu w edi ma być wynik do wpisania
 
 		mov al,BYTE[ebx-4]
 		mov [ebp-1],al
@@ -163,7 +170,7 @@ medianLoop:
 
 
 
-	add ebx,esi ; jesteśmy teraz w następnej linii
+		add ebx,esi ; jesteśmy teraz w następnej linii
 
 		mov al,BYTE[ebx-4]
 		mov [ebp-7],al
@@ -171,6 +178,10 @@ medianLoop:
 		mov [ebp-8],al
 		mov al,BYTE[ebx+4]
 		mov [ebp-9],al
+
+
+		sub ebx,esi; wracamy do linii
+
 
 bubbleSort:
 		xor eax,eax
@@ -219,9 +230,6 @@ bubbleSortEnd:
 		sub ebx,edx; wracamy spowrotem, bo trzeba
 
 		mov [ecx+edx],al ; wpisanie wyniku na miejsce
-		mov [ecx+3],BYTE 255
-
-		add ebx,esi; wracamy do linii
 
 
 

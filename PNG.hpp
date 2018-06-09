@@ -16,8 +16,8 @@ namespace Arko
     static constexpr Empty empty{};
   public:
     PNG(); // Ten konstruktor daje pusty obiekt.
-    PNG(FromFile,std::string);
-    PNG(Empty,unsigned,unsigned);
+    PNG(const FromFile&,std::string);
+    PNG(const Empty&,unsigned,unsigned);
     PNG(const PNG&);
     PNG&operator=(const PNG&);
     ~PNG();
