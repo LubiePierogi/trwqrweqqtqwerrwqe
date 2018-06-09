@@ -10,14 +10,26 @@ namespace Arko
 {
   constexpr const char*Filter::vertexShader;
   constexpr const char*Filter::fragmentShader;
-  Filter::Filter():
+  constexpr Filter::Vertex Filter::vertices[];
+  constexpr Filter::TexCoord Filter::texCoords[];
+  Filter::Filter(int c,char**v):
+    argc(c),
+    argv(v),
     status_SDL_Init(0),
     window(nullptr),
     context(nullptr),
     status_glewInit(0),
     vsh(0),
     fsh(0),
-    shp(0)
+    shp(0),
+    attrVertex(0),
+    attrTexCoord(0),
+    texture(0),
+    drawTexturePointer(nullptr),
+    image(),
+    imageNew(),
+    imageWidth(0),
+    imageHeight(0)
   {}
   Filter::~Filter()
   {
@@ -35,7 +47,7 @@ namespace Arko
     }
     SDL_Quit();
   }
-  int Filter::run(int argc,char**argv)
+  int Filter::run()
   {
     if(argc<2)
     {
@@ -103,8 +115,10 @@ namespace Arko
       ;
       return -1;
 	  }
+    loadImageFromFile(argv[1]);
     setOpenGL();
     mainLoop();
+    unsetOpenGL();
     return 0;
   }
   void Filter::loadShadersAndPrograms()
@@ -160,13 +174,12 @@ namespace Arko
       throw Exception(msg);
     }
 
-    GLint attr;
 
-    attr=glGetAttribLocation(shp,"vertex");
-    if(attr==-1)
+    attrVertex=glGetAttribLocation(shp,"vertex");
+    if(attrVertex==-1)
       throw Exception("vertex nie działa");
-    attr=glGetAttribLocation(shp,"texCoord");
-    if(attr==-1)
+    attrTexCoord=glGetAttribLocation(shp,"texCoord");
+    if(attrTexCoord==-1)
       throw Exception("texCoord nie działa");
 
 /*
@@ -203,10 +216,85 @@ namespace Arko
   void Filter::setOpenGL()
   {
     glClearColor(0.0,0.0,0.0,1.0);
+
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,1);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    glUseProgram(shp);
+
+    glEnableVertexAttribArray(attrVertex);
+    glEnableVertexAttribArray(attrTexCoord);
+    glVertexAttribPointer
+    (
+      attrVertex,
+      2,
+      GL_FLOAT,
+      GL_FALSE,
+      0,
+      vertices
+    );
+    glVertexAttribPointer
+    (
+      attrTexCoord,
+      2,
+      GL_FLOAT,
+      GL_FALSE,
+      0,
+      texCoords
+    );
   }
   void Filter::draw()
   {
+    do
+    {
+
+
+      glGenTextures(1,&texture);
+      glBindTexture(GL_TEXTURE_2D,texture);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+      glTexImage2D
+      (
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        image.getWidth(),
+        image.getHeight(),
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        image.getPixels()
+      );
+    }while(false);
+
+
+
+
+
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glDrawArrays(GL_TRIANGLE_FAN,0,4);
+
     SDL_GL_SwapWindow(window);
+
+    glDeleteTextures(1,&texture);
+  }
+  void Filter::unsetOpenGL()
+  {
+    glDisableVertexAttribArray(attrVertex);
+    glDisableVertexAttribArray(attrTexCoord);
+  }
+  void Filter::loadImageFromFile(std::string name)
+  {
+    image=PNG(PNG::fromFile,name);
+  }
+  void Filter::saveImageToFile(std::string name)
+  {
+
+  }
+  void Filter::editImage()
+  {
+
   }
 }

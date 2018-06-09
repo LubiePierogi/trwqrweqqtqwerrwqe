@@ -2,6 +2,9 @@
 
 #include<SDL2/SDL.h>
 #include<GL/glew.h>
+#include<string>
+#include"Pixel.hpp"
+#include"PNG.hpp"
 
 namespace Arko
 {
@@ -28,10 +31,55 @@ namespace Arko
 			"  gl_FragColor=texture2D(texture,texCoordF);\n"
 			"}\n"
 		;
+	private:
+		struct Vertex final
+		{
+			float x;
+			float y;
+			// Te zmienne muszą być po sobie i w takiej kolejności, bo inaczej
+			// nie będzie działać tak jak trzeba.
+		};
+		struct TexCoord final
+		{
+			float x;
+			float y;
+			// Tutaj tak samo jak wyżej.
+		};
+
+		constexpr static Vertex vertices[4]
+		{
+			{-1.f,-1.f},
+			{ 1.f,-1.f},
+			{ 1.f, 1.f},
+			{-1.f, 1.f}
+		};
+
+		constexpr static TexCoord texCoords[4]
+		{
+			{0.f,0.f},
+			{1.f,0.f},
+			{1.f,1.f},
+			{0.f,1.f}
+		};
+
+
+	private:
 		void loadShadersAndPrograms();
 		void setOpenGL();
+		void unsetOpenGL();
 		void mainLoop();
 		void draw();
+
+		void loadImageFromFile(std::string name);
+
+		void saveImageToFile(std::string name);
+
+		void editImage();
+
+	private:
+
+		int argc;
+		char**argv;
 
 	private:
 		int status_SDL_Init;
@@ -43,9 +91,24 @@ namespace Arko
 		GLuint fsh;
 		GLuint shp;
 
+		GLint attrVertex;
+		GLint attrTexCoord;
+
+		GLuint texture;
+
+		void*drawTexturePointer;
+
+	private:
+
+		PNG image;
+		PNG imageNew;
+
+		unsigned int imageWidth;
+		unsigned int imageHeight;
+
 	public:
-		Filter();
+		Filter(int,char**);
 		~Filter();
-		int run(int,char**);
+		int run();
 	};
 }
