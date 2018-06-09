@@ -5,7 +5,7 @@
 #include"function.h"
 #include"Filter.hpp"
 #include"Exception.hpp"
-
+//extern"C"{void function(void*,void*,unsigned,unsigned){}}
 namespace Arko
 {
   constexpr const char*Filter::vertexShader;
@@ -27,9 +27,7 @@ namespace Arko
     texture(0),
     drawTexturePointer(nullptr),
     image(),
-    imageNew(),
-    imageWidth(0),
-    imageHeight(0)
+    imageNew()
   {}
   Filter::~Filter()
   {
@@ -320,11 +318,21 @@ namespace Arko
   }
   void Filter::saveImageToFile(std::string name)
   {
-
+    image.save("output.png");
   }
   void Filter::editImage()
   {
-
+    imageNew=PNG(PNG::empty,image.getWidth(),image.getHeight());
+    std::cerr<<"!!!!!!!!!!!!!!!!!!!!\n";
+    ::function
+    (
+      image.getPixels(),
+      imageNew.getPixels(),
+      image.getWidth(),
+      image.getHeight()
+    );
+    std::cerr<<"@@@@@@@@@@@@@@@@@@@@\n";
+    image=imageNew;
   }
   void Filter::resizeViewport(int width,int height)
   {

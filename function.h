@@ -4,7 +4,7 @@
 extern "C"
 {
 #endif
-int function(void*,void*,unsigned int,unsigned int);
+void function(void*,void*,unsigned int,unsigned int);
 #ifdef __cplusplus
 }
 #endif

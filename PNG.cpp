@@ -145,6 +145,14 @@ namespace Arko
       );
 
   }
+  PNG::PNG(Empty,unsigned w,unsigned h):
+    width(w),
+    height(h)
+  {
+    pixels=new Pixel[w*h];
+    for(int i=0;i<w*h;++i)
+      pixels[i]=Pixel{0,0,0,0};
+  }
   PNG::~PNG()
   {
     if(pixels)
@@ -184,5 +192,9 @@ namespace Arko
   Pixel*PNG::getPixels()
   {
     return pixels;
+  }
+  void PNG::save(std::string name)
+  {
+    // To później.
   }
 }
