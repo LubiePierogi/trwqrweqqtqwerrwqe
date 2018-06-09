@@ -4,13 +4,13 @@ global function
 function:
 
 prologue:
-	push    ebp
-	mov	    ebp,esp
-	sub     esp,2000
+		push    ebp
+		mov	    ebp,esp
+		sub     esp,2000
 
-	push    ebx
-	push    esi
-	push    edi
+		push    ebx
+		push    esi
+		push    edi
 
 ;   [ebp+4]  return
 ;   [ebp+8]  pierwszy wskaźnik
@@ -35,30 +35,30 @@ prologue:
 
 core:
 
-	xor eax,eax
-	xor ecx,ecx
+		xor eax,eax
+		xor ecx,ecx
 
 
 
-	mov eax,DWORD[ebp+16]
-	cmp eax,2
-	jle epilogue
-	or ecx,eax
-	dec eax
-	mov [ebp-16],eax    ; zrobienie szerokości-1
-	shl ecx,2
-	mov [ebp-36],ecx   ; zrobienie szerokości linii w bajtach
+		mov eax,DWORD[ebp+16]
+		cmp eax,2
+		jle epilogue
+		or ecx,eax
+		dec eax
+		mov [ebp-16],eax    ; zrobienie szerokości-1
+		shl ecx,2
+		mov [ebp-36],ecx   ; zrobienie szerokości linii w bajtach
 
 
-  mov eax,DWORD[ebp+20]
-	cmp eax,2
-	jle epilogue
-	dec eax
-	mov [ebp-20],eax  ; zrobienie wysokości-1
+  	mov eax,DWORD[ebp+20]
+		cmp eax,2
+		jle epilogue
+		dec eax
+		mov [ebp-20],eax  ; zrobienie wysokości-1
 
 
-	mov [ebp-24],DWORD -1 ; X=-1
-	mov [ebp-32],DWORD -1 ; Y=-1
+		mov [ebp-24],DWORD -1 ; X=-1
+		mov [ebp-32],DWORD -1 ; Y=-1
  ;;miejsca /\
  ;        /||\
  ;         ||
@@ -71,62 +71,186 @@ core:
 	;[ebp-28]
 
 
-	mov eax,DWORD[ebp+8]
-	mov ecx,DWORD[ebp+12]
-	add eax,-4
-	add ecx,-4
-	mov [ebp-28],eax; adresCzytania=-4+pierwszy
-	mov [ebp-40],ecx; adresPisania=-4+drugi
+		mov eax,DWORD[ebp+8]
+		mov ecx,DWORD[ebp+12]
+		add eax,-4
+		add ecx,-4
+		mov [ebp-28],eax; adresCzytania=-4+pierwszy
+		mov [ebp-40],ecx; adresPisania=-4+drugi
 	;; to było zrobienie wskaźników na miejsce do czytania i pisania
 
 verticalLoop:
 
-	inc DWORD[ebp-32]; ++Y
+		inc DWORD[ebp-32]; ++Y
 
-	mov eax,DWORD[ebp+20]; eax=wysokosc
-	cmp eax,[ebp-32]; eax ? Y
+		mov esi,DWORD[ebp-32]; esi=Y
+		cmp esi,[ebp+20]; esi ? wysokosc
 
-	jle verticalLoopEnd ; skakanko
-
-	;jmp DWORD 0
+		jge verticalLoopEnd ; skakanko
 
 horizontalLoop:
 
-	inc DWORD[ebp-24] ; ++X
-	mov eax,DWORD[ebp+16]; eax=szerokosc
-	cmp eax,[ebp-24] ; eax ? X
-	jle horizontalLoopEnd ; skakaneczko
-	add [ebp-28],DWORD 4; adresCzytania+=4
-	add [ebp-40],DWORD 4; adresPisania+=4
+		inc DWORD[ebp-24] ; ++X
+		mov eax,DWORD[ebp-24]; eax=X
+		cmp eax,[ebp+16] ; eax ? szerokosc
+		jge horizontalLoopEnd ; skakaneczko
+		add [ebp-28],DWORD 4; adresCzytania+=4
+		add [ebp-40],DWORD 4; adresPisania+=4
 
-computeMedian:
+		mov eax,DWORD[ebp-24]
+           	; w eax mamy teraz X
+		mov esi,DWORD[ebp-32]
+	    ; w esi mamy teraz Y
 
-	mov eax,[ebp-40]
+	    ;Tutaj już wezmę adresy zapisu i czytania
+	 	mov ecx,[ebp-40] ; adres do zapisu
+	 	mov ebx,[ebp-28]; adres czytania
+	 	mov edi,[ebx] ; już przeczytane
 
-	mov [eax],DWORD 0xffff00ff
+	 ; w ebx mamy adres czytania
+	 ; ale mamy X w eax i Y w esi xD
 
-endComputingMedian:
+		test eax,eax
+		jz copyOld
+		test esi,esi
+		jz copyOld
+
+		cmp eax,[ebp-16]
+		je copyOld
+		cmp esi,[ebp-20]
+		je copyOld
+
+computeMedian:;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; NIE RUSZAĆ ESI!!!
+; EAX TEŻ!!!
+; I JESZCZE ECX!!!
+;I jescze ebx, ale W EBX JEST ADRES CZYTANIA!
+
+; w edi jest stary piksel niepotrzebny
+
+; dobra dam push
+
+		push esi
+		push eax
+
+	;mov [ecx],edi
+	;xor esi,esi
+		xor edx,edx ; od teraz w edx jest przesunięcie na kanał od koloru
+		mov esi,[ebp-36]; tutaj do esi wczytujemy sobie szerokosc linii w bajtach
+
+medianLoop:
+;edx zajęte
+		add ebx,edx; przesuwamy się na kolor, któ©y zmieniamy
+		sub ebx,esi; dodatkowo cofamu się o linię
+;; na końcu w edi ma być wynik do wpisania
+
+		mov al,BYTE[ebx-4]
+		mov [ebp-1],al
+		mov al,BYTE[ebx]
+		mov [ebp-2],al
+		mov al,BYTE[ebx+4]
+		mov [ebp-3],al
+
+		add ebx,esi ; jesteśmy teraz na naszej linii
+
+
+		mov al,BYTE[ebx-4]
+		mov [ebp-4],al
+		mov al,BYTE[ebx]
+		mov [ebp-5],al
+		mov al,BYTE[ebx+4]
+		mov [ebp-6],al
 
 
 
-	jmp horizontalLoop
+	add ebx,esi ; jesteśmy teraz w następnej linii
+
+		mov al,BYTE[ebx-4]
+		mov [ebp-7],al
+		mov al,BYTE[ebx]
+		mov [ebp-8],al
+		mov al,BYTE[ebx+4]
+		mov [ebp-9],al
+
+bubbleSort:
+		xor eax,eax
+		push ecx
+		push esi
+		push ebx
+
+		mov ecx,8
+		mov esi,ebp
+		sub esi,9
+		mov ebx,esi
+		add ecx,esi
+bubbleSortLoop:
+				; esi licznik pierwszego
+				; ebx licznik pierwszego do cofania
+				; ecx licznik ostatniego
+				; eax miejsce do porównywania
+
+internalBubbleSortLoop:
+
+		mov al,BYTE[esi]
+		mov ah,BYTE[ecx]
+		cmp ah,al
+		jge dontSwap
+
+		mov [esi],ah
+		mov [ecx],al
+dontSwap:
+		inc esi
+		cmp esi,ecx
+		jl internalBubbleSortLoop
+internalBubbleSortEnd:
+
+		mov esi,ebx
+		dec ecx
+		cmp ecx,esi
+		jg bubbleSortLoop
+bubbleSortEnd:
+		pop ebx
+		pop esi
+		pop ecx
+				; eax nie jest używane
+		xor ax,ax
+		mov al,BYTE[ebp-5]
+
+		sub ebx,edx; wracamy spowrotem, bo trzeba
+
+		mov [ecx+edx],al ; wpisanie wyniku na miejsce
+		mov [ecx+3],BYTE 255
+
+		add ebx,esi; wracamy do linii
+
+
+
+		inc edx
+		cmp edx,4
+		jl medianLoop
+medianLoopEnd:
+
+		pop eax
+endComputingMedian:;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		pop esi
+  	jmp horizontalLoop
+copyOld:
+		mov [ecx],edi
+endCopyingOld:
+		jmp horizontalLoop
 horizontalLoopEnd:
- mov [ebp-24], DWORD -1 ; X=-1
-; add [ebp-28], DWORD 4 ; adresCzytania+=4
-; add [ebp-40], DWORD 4 ; adresPisania+=4
+ 		mov [ebp-24], DWORD -1 ; X=-1
 
-
-
-	jmp verticalLoop
+		jmp verticalLoop
 verticalLoopEnd:
 
 epilogue:
 
-	pop     edi
-	pop     esi
-	pop     ebx
+		pop     edi
+		pop     esi
+		pop     ebx
 
 
-	mov     esp,ebp ; znowu stary stack pointer
-	pop     ebp ;przywroconko starego frame pointera
-	ret
+		mov     esp,ebp ; znowu stary stack pointer
+		pop     ebp ;przywroconko starego frame pointera
+		ret
