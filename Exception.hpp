@@ -10,8 +10,8 @@ namespace Arko
   	explicit Exception(const std::string&message):
   		msg(message)
   	{}
-  	virtual ~Exception(){}
-  	virtual const char*what()const
+  	virtual ~Exception()throw(){}
+  	virtual const char*what()const throw()
   	{
   		return msg.c_str();
   	}

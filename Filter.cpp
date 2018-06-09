@@ -54,6 +54,15 @@ namespace Arko
       std::cerr<<"Nie podano nazwy pliku wejściowego.\n";
       return -1;
     }
+    try
+    {
+      loadImageFromFile(argv[1]);
+    }
+    catch(Exception& exc)
+    {
+      std::cerr<<exc.what()<<'\n';
+      return -1;
+    }
     int status_SDL_Init=SDL_Init(SDL_INIT_VIDEO);
     if(status_SDL_Init)
     {
@@ -106,7 +115,7 @@ namespace Arko
   	{
 	  	loadShadersAndPrograms();
 	  }
-  	catch(Exception exc)
+  	catch(Exception& exc)
   	{
 	  	std::cerr
         <<"Błąd:\n"
@@ -115,7 +124,6 @@ namespace Arko
       ;
       return -1;
 	  }
-    loadImageFromFile(argv[1]);
     setOpenGL();
     mainLoop();
     unsetOpenGL();
@@ -208,6 +216,27 @@ namespace Arko
           case SDL_QUIT:
             notQuit=false;
             break;
+          case SDL_WINDOWEVENT:
+            switch(ev.window.event)
+            {
+              case SDL_WINDOWEVENT_RESIZED:
+                resizeViewport(ev.window.data1,ev.window.data2);
+                break;
+              default:;
+            }
+            break;
+          case SDL_KEYDOWN:
+            switch(ev.key.keysym.sym)
+            {
+              case SDLK_SPACE:
+                editImage();
+                break;
+              case SDLK_RETURN:
+                saveImageToFile("output.png");
+                break;
+              default:;
+            }
+            break;
           default:;
         }
       }
@@ -296,5 +325,9 @@ namespace Arko
   void Filter::editImage()
   {
 
+  }
+  void Filter::resizeViewport(int width,int height)
+  {
+    glViewport(0,0,width,height);
   }
 }

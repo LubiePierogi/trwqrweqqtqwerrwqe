@@ -69,6 +69,7 @@ namespace Arko
 		void unsetOpenGL();
 		void mainLoop();
 		void draw();
+		void resizeViewport(int,int);
 
 		void loadImageFromFile(std::string name);
 
