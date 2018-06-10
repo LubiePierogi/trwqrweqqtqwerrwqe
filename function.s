@@ -14,7 +14,7 @@ function:
 prologue:
 		push    ebp
 		mov	    ebp,esp
-		sub     esp,2000
+		sub     esp,40
 
 		push    ebx
 		push    esi
@@ -25,7 +25,7 @@ prologue:
 ;   [ebp+12] drugi wskaźnik
 ;   [ebp+16] szerokość
 ;   [ebp+20] wysokość
-;   [ebp+24] koniec argumentóœ
+;   [ebp+24] za argumentami już
 
 ;   [ebp]    stare ebp
 
