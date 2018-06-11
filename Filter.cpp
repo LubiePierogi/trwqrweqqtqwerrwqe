@@ -73,7 +73,7 @@ namespace Arko
     }
     window=SDL_CreateWindow
     (
-      "werrtwerwerr",
+      "Filtr",
       SDL_WINDOWPOS_CENTERED,
       SDL_WINDOWPOS_CENTERED,
       800,
@@ -180,25 +180,12 @@ namespace Arko
       throw Exception(msg);
     }
 
-
     attrVertex=glGetAttribLocation(shp,"vertex");
     if(attrVertex==-1)
       throw Exception("vertex nie działa");
     attrTexCoord=glGetAttribLocation(shp,"texCoord");
     if(attrTexCoord==-1)
       throw Exception("texCoord nie działa");
-
-/*
-
- SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,1);
- glEnable(GL_BLEND);
- glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
- petla(okno);
- glDeleteProgram(program);
- glDeleteProgram(program1);
- //glDeleteTextures(1,&texture_litera);
-}
-*/
   }
   void Filter::mainLoop()
   {
@@ -218,7 +205,6 @@ namespace Arko
             switch(ev.window.event)
             {
               case SDL_WINDOWEVENT_RESIZED:
-
                 resizeViewport(ev.window.data1,ev.window.data2);
                 break;
               default:;
@@ -277,31 +263,22 @@ namespace Arko
   }
   void Filter::draw()
   {
-    do
-    {
-
-
-      glGenTextures(1,&texture);
-      glBindTexture(GL_TEXTURE_2D,texture);
-      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-      glTexImage2D
-      (
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        image.getWidth(),
-        image.getHeight(),
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        image.getPixels()
-      );
-    }while(false);
-
-
-
-
+    glGenTextures(1,&texture);
+    glBindTexture(GL_TEXTURE_2D,texture);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexImage2D
+    (
+      GL_TEXTURE_2D,
+      0,
+      GL_RGBA,
+      image.getWidth(),
+      image.getHeight(),
+      0,
+      GL_RGBA,
+      GL_UNSIGNED_BYTE,
+      image.getPixels()
+    );
 
     glClear(GL_COLOR_BUFFER_BIT);
 

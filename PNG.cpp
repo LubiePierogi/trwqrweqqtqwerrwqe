@@ -16,11 +16,7 @@ namespace Arko
   {}
   PNG::PNG(const FromFile&,std::string name)
   {
-    // Tutaj będzie zięcie obrazka przez libpng.
-
-    //pixels=new Pixel[24*24];
-  //  width=24;
-//    height=24;
+    // Tutaj będzie wzięcie obrazka przez libpng.
 
     bool good=false;
     char header[8];
@@ -33,7 +29,6 @@ namespace Arko
     png_infop end_ptr;
     png_bytep*row_pointers;
     int interlace_type;
-
 
     std::FILE*fp=fopen(name.c_str(),"rb");
     if(!fp)
@@ -68,7 +63,6 @@ namespace Arko
     png_set_sig_bytes(png_ptr,8);
     png_read_info(png_ptr,info_ptr);
 
-
     png_get_IHDR
     (
       png_ptr,
@@ -82,33 +76,8 @@ namespace Arko
       nullptr
     );
 ;
+
     // Read file?!
-
-    /*if(bit_depth==16)
-      png_set_strip_16(png_ptr);
-    if(color_type==PNG_COLOR_TYPE_PALETTE)
-      png_set_palette_to_rgb(png_ptr);
-    if(color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-      png_set_expand_gray_1_2_4_to_8(png_ptr);
-    if(png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-      png_set_tRNS_to_alpha(png_ptr);
-    if
-    (
-      color_type == PNG_COLOR_TYPE_RGB ||
-      color_type == PNG_COLOR_TYPE_GRAY ||
-      color_type == PNG_COLOR_TYPE_PALETTE
-    )
-      png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
-    if
-    (
-      color_type == PNG_COLOR_TYPE_GRAY ||
-      color_type == PNG_COLOR_TYPE_GRAY_ALPHA
-    )
-      png_set_gray_to_rgb(png_ptr);
-
-    png_read_update_info(png_ptr,info_ptr);
-
-*/
 
     row_pointers=static_cast<png_bytep*>(std::malloc(sizeof(png_bytep)*h));
     for(unsigned int y=0;y<h;++y)
@@ -117,9 +86,7 @@ namespace Arko
 
     png_read_image(png_ptr,row_pointers);
 
-
     png_read_end(png_ptr,info_ptr);
-
 
     png_destroy_read_struct(&png_ptr,&info_ptr,nullptr);
     std::fclose(fp);
@@ -269,6 +236,5 @@ namespace Arko
     delete[] row_pointers;
     png_destroy_write_struct(&png_ptr,&info_ptr);
     std::fclose(fp);
-
   }
 }
