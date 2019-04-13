@@ -1,7 +1,6 @@
-# trwqrweqqtqwerrwqe
-thejhntrhyrfthtry546jhtr
+# Projekt na ARKO w x86
+
+Program otwiera obrazek w PNG podany jako argument do programu i robi na nim filtr medianowy i zapisuje wynik do pliku o nazwie `output.png`.
 
 
-Projekt na arko w x86
-
-Bierzę obrazek chyba w PNG czy coś i robi na nim ten filtr i tworzy nowy plik chyba o nazwie `output.png`.
+Trochę bałagan tu jest :>
